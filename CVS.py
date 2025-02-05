@@ -7,6 +7,10 @@ import time
 # Initialize MediaPipe Face Mesh                                                
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh()
+
+mp_hands = mp.solutions.hands
+hands = mp_hands.Hands()
+
 mp_drawing = mp.solutions.drawing_utils
 
 # Open the camera
@@ -52,12 +56,18 @@ No_makrks = False
 After_cooldown = False
 
 cout_of_time_20 = 1
+
+face_is_true = False
+hand_is_true = False
+
+if_No_face_Yes_hand = False
+some_time_No_face_Yes_hand = False
 #--------------------------------------------------#
 
 #INPUT---------------------------------------------#
 alert_duration = 20 * 60 # in seconds
 Time_cooldown = 20 # in seconds
-Time_of_blink_rate = 60 # in seconds
+Time_of_blink_rate = 10 # in seconds
 EAR_THRESHOLD = 0.24
 #INPUT---------------------------------------------#
 
@@ -87,11 +97,13 @@ while cap.isOpened():
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # Detect face landmarks
-    result = face_mesh.process(frame_rgb)
+    resultface = face_mesh.process(frame_rgb)
+    resultshands = hands.process(frame_rgb)
 
     # If faces are detected
-    if result.multi_face_landmarks:
-        for face_landmarks in result.multi_face_landmarks:
+    if resultface.multi_face_landmarks:
+        face_is_true = True
+        for face_landmarks in resultface.multi_face_landmarks:
             # Draw the landmarks and mesh
             mp_drawing.draw_landmarks(
                 frame,
@@ -147,12 +159,36 @@ while cap.isOpened():
             if True_cooldown > 0:
                 sp_time = time.time() - screen_start_time
     else:
+        face_is_true = False
         cooldown += sp_time
         sp_time = 0
         cl_time = time.time() - All_time
         No_makrks = True
         if True_cooldown > 0:
             screen_start_time = None
+
+    if resultshands.multi_hand_landmarks:
+        hand_is_true = True
+        for hand_landmarks in resultshands.multi_hand_landmarks:
+            mp_drawing.draw_landmarks(
+                frame, 
+                hand_landmarks, 
+                mp_hands.HAND_CONNECTIONS,
+                mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=1, circle_radius=1),
+                mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=5))
+            if face_is_true == False or True_cooldown > 0:
+                if No_makrks == True or After_cooldown == True:
+                    start_time += int(cl_time)
+                    No_makrks = False
+                    After_cooldown = False
+                All_time = time.time()
+                if screen_start_time is None:
+                    screen_start_time = time.time()
+                if True_cooldown > 0:
+                    sp_time = time.time() - screen_start_time
+    else:
+        hand_is_true = False
+
     # Check if the user has been looking at the screen for too long
     if screen_start_time is not None and True_cooldown <= 0:
         time_on_screen = time.time() - screen_start_time - cl_time
@@ -184,7 +220,6 @@ while cap.isOpened():
             get_one_time_cooldown = True
     else:
         After_cooldown = True
-
             
     # Display the processed image
     cv2.imshow('Computer vision syndrome', frame)
