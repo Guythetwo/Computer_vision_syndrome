@@ -1,6 +1,6 @@
 import cv2
 import mediapipe as mp
-from notifypy import Notify
+from plyer import notification
 import math
 import time
 #--------------------------------------------------#
@@ -162,10 +162,11 @@ while cap.isOpened():
             cv2.putText(frame, f'Minute : 1 Blink Rate: {blink_rate}', (30, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         if (time_on_screen >= alert_duration and executed_once == True) or Tired_eyes == True:
             executed_once = False
-            notification = Notify()
-            notification.title = "คําเตือน"
-            notification.message = "ดูเหมือนคุณอยู่หน้าจอคอมมากเกินไปแล้ว พักประมาณ 20 วินาทีก่อน"
-            notification.send()
+            notification.notify(
+            title = "คําเตือน",
+            message="ดูเหมือนคุณอยู่หน้าจอคอมมากเกินไปแล้ว พักประมาณ 20 วินาทีก่อน" ,
+            app_name="CVS",
+            )
             True_cooldown = Time_cooldown
             Tired_eyes = False
         elif time_on_screen < 1:
