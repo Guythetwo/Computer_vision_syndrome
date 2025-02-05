@@ -67,7 +67,7 @@ some_time_No_face_Yes_hand = False
 #INPUT---------------------------------------------#
 alert_duration = 20 * 60 # in seconds
 Time_cooldown = 20 # in seconds
-Time_of_blink_rate = 10 # in seconds
+Time_of_blink_rate = 60 # in seconds
 EAR_THRESHOLD = 0.24
 #INPUT---------------------------------------------#
 
@@ -176,7 +176,7 @@ while cap.isOpened():
                 mp_hands.HAND_CONNECTIONS,
                 mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=1, circle_radius=1),
                 mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=5))
-            if face_is_true == False or True_cooldown > 0:
+            if face_is_true == False and True_cooldown > 0:
                 if No_makrks == True or After_cooldown == True:
                     start_time += int(cl_time)
                     No_makrks = False
