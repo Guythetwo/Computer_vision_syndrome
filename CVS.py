@@ -174,7 +174,7 @@ while cap.isOpened():
                 frame, 
                 hand_landmarks, 
                 mp_hands.HAND_CONNECTIONS,
-                mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=1, circle_radius=1),
+                mp_drawing.DrawingSpec(color=(0, 255, 0), thickness=1, circle_radius=5),
                 mp_drawing.DrawingSpec(color=(0, 0, 255), thickness=5))
             if face_is_true == False and True_cooldown > 0:
                 if No_makrks == True or After_cooldown == True:
