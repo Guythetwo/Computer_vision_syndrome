@@ -4,7 +4,7 @@ from plyer import notification
 import math
 import time
 #--------------------------------------------------#
-# Initialize MediaPipe Face Mesh
+# Initialize MediaPipe Face Mesh                                                
 mp_face_mesh = mp.solutions.face_mesh
 face_mesh = mp_face_mesh.FaceMesh()
 mp_drawing = mp.solutions.drawing_utils
@@ -14,6 +14,8 @@ cap = cv2.VideoCapture(0)
 
 # Blink detection variables
 blink_count = 0
+blink_rate = 0
+SUM_blink = 0
 left_eye_closed = False
 right_eye_closed = False
 
@@ -56,6 +58,7 @@ cout_of_time_20 = 1
 alert_duration = 20 * 60 # in seconds
 Time_cooldown = 20 # in seconds
 Time_of_blink_rate = 60 # in seconds
+EAR_THRESHOLD = 0.24
 #INPUT---------------------------------------------#
 
 # Function to calculate Euclidean distance between two points
@@ -73,9 +76,6 @@ def calculate_ear(landmarks, eye_indices):
 # Indices for left and right eyes
 left_eye_indices = [362, 385, 387, 263, 373, 380]
 right_eye_indices = [33, 160, 158, 133, 153, 144]
-
-# EAR threshold for determining if the eye is closed
-EAR_THRESHOLD = 0.235
 
 while cap.isOpened():
     success, frame = cap.read()
@@ -111,6 +111,7 @@ while cap.isOpened():
             else:
                 if left_eye_closed:
                     blink_count += 1
+                    SUM_blink += 1
                     left_eye_closed = False
 
             if right_ear < EAR_THRESHOLD:
@@ -152,14 +153,14 @@ while cap.isOpened():
         No_makrks = True
         if True_cooldown > 0:
             screen_start_time = None
-        print(cl_time)
     # Check if the user has been looking at the screen for too long
     if screen_start_time is not None and True_cooldown <= 0:
         time_on_screen = time.time() - screen_start_time - cl_time
-        cv2.putText(frame, f'time: {int(elapsed_time // 60)} M {int(elapsed_time % 60)} S', (30, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-        cv2.putText(frame, f'Blink Count: {blink_count}', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f'time: {int(elapsed_time // 60)} M {int(elapsed_time % 60)} S', (380, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        cv2.putText(frame, f'Blink Count: {blink_count}', (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+        cv2.putText(frame, f'Blink Rate: {blink_rate}', (30, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
         if show_blink == True:
-            cv2.putText(frame, f'Minute : 1 Blink Rate: {blink_rate}', (30, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.putText(frame, f'Minute : {int(elapsed_time // 60)} Blink Count: {blink_rate}', (30, 460), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         if (time_on_screen >= alert_duration and executed_once == True) or Tired_eyes == True:
             executed_once = False
             notification.notify(
@@ -172,7 +173,7 @@ while cap.isOpened():
         elif time_on_screen < 1:
             executed_once = True
     elif True_cooldown > 0 or screen_start_time is None:
-        cv2.putText(frame, f'cooldown {int(True_cooldown)}', (30, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(frame, f'cooldown {int(True_cooldown)}', (30, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
         if screen_start_time is None and True_cooldown > 0:
             if get_one_time_cooldown == True:
                 cooldown = Time_cooldown + time.time()
@@ -191,7 +192,6 @@ while cap.isOpened():
     # Press 'ecs' to exit
     if cv2.waitKey(1) & 0xFF == 27:
         break
-
 # Release the camera and close windows
 cap.release()
 cv2.destroyAllWindows()
